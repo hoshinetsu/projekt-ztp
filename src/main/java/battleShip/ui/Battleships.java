@@ -1,5 +1,8 @@
 package battleShip.ui;
 
+import battleShip.board.Battleboard;
+import battleShip.board.BoardBuilder;
+
 import javax.swing.*;
 
 /* Singleton */
@@ -11,7 +14,9 @@ public class Battleships extends JFrame {
         instance = this;
         setTitle("Battleships");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        add(new GameUI());
+        BoardBuilder bob = new BoardBuilder(10);
+        bob.addSingle(0, 0).addSingle(1, 0).addSingle(0, 1).addSingle(9, 9).addSingle(8, 9).addSingle(9, 8);
+        add(new GameUI(bob.toBoard()));
         pack();
         setLocationRelativeTo(null);
     }

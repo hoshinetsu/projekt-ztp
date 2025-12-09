@@ -5,14 +5,15 @@ public class ShipObject {
     public final int length;
     public final boolean vertical;
 
-    private final Battleboard bb;
     private int health;
 
-    public ShipObject(Battleboard bb, int x, int y, int len, boolean vert){
-        this.bb = bb;
+    public ShipObject(int x, int y, int len, boolean vert){
         this.posX = x;
         this.posY = y;
         this.length = len;
+        if(len == 1) {
+            vert = false;
+        }
         this.vertical = vert;
         this.health = len;
     }
