@@ -47,25 +47,38 @@ public class Battleboard {
         return true;
     }
 
-    public void registerHit(int x, int y) {
+    public ShipObject shoot(int x, int y) {
+        ShipObject ret = null;
         HitboxState state = hitTable[x + y * size];
-        if(state != HitboxState.EMPTY) return;
+
+        if(state != HitboxState.EMPTY) return ret;
 
         boolean shipFound = false;
         for(ShipObject so : battleShips){
             if(so.intersects(x, y)){
+                ret = so;
                 shipFound = true;
                 break;
             }
         }
 
         if (shipFound) {
+            ret.hit();
+            System.out.println("Ship " + ret + " is at " + ret.getHp());
+            if(ret.isSunken()) {
+                System.out.println("Ship " + ret + " got rekt, ez");
+                battleShips.remove(ret);
+            }
+            if(battleShips.isEmpty()) {
+                System.out.println("gg ez tutorial");
+            }
            state = HitboxState.HIT;
         } else {
             state = HitboxState.MISS;
         }
         hitTable[x + y * size] = state;
         updateAllRenderers();
+        return ret;
     }
 
     public HitboxState getHitState(int x, int y){

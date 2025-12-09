@@ -7,26 +7,26 @@ public class ShipObject {
 
     private int health;
 
-    public ShipObject(int x, int y, int len, boolean vert){
+    public ShipObject(int x, int y, int len, boolean vert) {
         this.posX = x;
         this.posY = y;
         this.length = len;
-        if(len == 1) {
+        if (len == 1) {
             vert = false;
         }
         this.vertical = vert;
         this.health = len;
     }
 
-    public void hit(){
-        if(health > 0) health--;
+    public void hit() {
+        if (health > 0) health--;
     }
 
-    public boolean isSunken(){
+    public boolean isSunken() {
         return health <= 0;
     }
 
-    public boolean intersects(int cx, int cy){
+    public boolean intersects(int cx, int cy) {
         if (vertical) {
             return cx == posX && cy >= posY && cy < posY + length;
         } else {
@@ -49,5 +49,13 @@ public class ShipObject {
         boolean overlapY = myY1 < theirY2 && myY2 > theirY1;
 
         return overlapX && overlapY;
+    }
+
+    public String toString() {
+        return String.format("ShipObj[x:%d,y:%d,len:%d,vert:%s]", posX, posY, length, vertical ? "yes" : "no");
+    }
+
+    public int getHp() {
+        return health;
     }
 }

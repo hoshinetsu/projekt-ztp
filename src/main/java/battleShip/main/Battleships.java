@@ -1,7 +1,9 @@
-package battleShip.ui;
+package battleShip.main;
 
 import battleShip.board.Battleboard;
 import battleShip.board.BoardBuilder;
+import battleShip.board.gen.BattleshipDeployer;
+import battleShip.ui.GameUI;
 
 import javax.swing.*;
 
@@ -14,9 +16,10 @@ public class Battleships extends JFrame {
         instance = this;
         setTitle("Battleships");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        BoardBuilder bob = new BoardBuilder(10);
-        bob.addSingle(0, 0).addSingle(1, 0).addSingle(0, 1).addSingle(9, 9).addSingle(8, 9).addSingle(9, 8);
-        add(new GameUI(bob.toBoard()));
+
+        BattleshipDeployer dipshit = new BattleshipDeployer(2137);
+        Battleboard board = dipshit.deployBoard(10);
+        add(new GameUI(board));
         pack();
         setLocationRelativeTo(null);
     }

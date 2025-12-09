@@ -30,7 +30,7 @@ public class GameUI extends JPanel implements IBoardRenderer{
                 int x = (e.getX() - boardOffsetX) / cellSize;
                 int y = (e.getY() - boardOffsetY) / cellSize;
                 if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
-                    bb.registerHit(x, y);
+                    bb.shoot(x, y);
                 }
             }
         });
