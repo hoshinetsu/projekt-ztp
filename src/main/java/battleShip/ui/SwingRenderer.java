@@ -2,6 +2,7 @@ package battleShip.ui;
 
 import battleShip.board.Battleboard;
 import battleShip.board.HitboxState;
+import battleShip.board.ShipObject;
 import battleShip.board.game.GameObj;
 import battleShip.player.Player;
 
@@ -9,6 +10,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Iterator;
 
 public class SwingRenderer
         extends JPanel
@@ -17,6 +19,7 @@ public class SwingRenderer
     private GameObj game;
     private Player perspective;
     private Graphics2D g2d;
+    private boolean enemyView;
 
     private final int
             cellSize = 40,
@@ -28,18 +31,24 @@ public class SwingRenderer
     public SwingRenderer(GameObj game) {
         this.setPreferredSize(new Dimension(500, 500));
         this.setBackground(Color.DARK_GRAY);
+        enemyView = false;
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (perspective.isAi()) return;
+                if (!enemyView) return;
                 int x = (e.getX() - boardOffsetX) / cellSize;
                 int y = (e.getY() - boardOffsetY) / cellSize;
                 if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
-                    perspective.getEnemy().getBoard().shoot(x, y);
+                    perspective.getBoard().shoot(x, y);
                     game.nextTurn();
                 }
             }
         });
+    }
+
+    public SwingRenderer setEnemyView(){
+        enemyView = true;
+        return this;
     }
 
     public IBoardRenderer setPerspective(Player p) {
@@ -48,6 +57,7 @@ public class SwingRenderer
         }
         this.perspective = p;
         if (perspective != null) {
+            enemyView = perspective.isAi();
             perspective.getBoard().addRenderer(this);
         }
         return this;
@@ -60,11 +70,30 @@ public class SwingRenderer
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         render();
         g2d.setColor(Color.WHITE);
-        String str = "Click the grid to fire!";
+        String str = "unknown player's board";
         if(perspective != null) {
             str = "Viewing " + perspective + "'s board:";
         }
         g2d.drawString(str, 50, 30);
+    }
+
+    private void drawShip(ShipObject obj) {
+        int x = boardOffsetX + (obj.posX * cellSize);
+        int y = boardOffsetY + (obj.posY * cellSize);
+
+        g2d.setColor(Color.GRAY);
+
+        if (obj.vertical) {
+            g2d.fillRect(x + 5, y + 5, cellSize - 10, (cellSize * obj.length) - 10);
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawRect(x + 5, y + 5, cellSize - 10, (cellSize * obj.length) - 10);
+        } else {
+            g2d.fillRect(x + 5, y + 5, (cellSize * obj.length) - 10, cellSize - 10);
+            g2d.setColor(Color.BLACK);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawRect(x + 5, y + 5, (cellSize * obj.length) - 10, cellSize - 10);
+        }
     }
 
     @Override
@@ -98,6 +127,11 @@ public class SwingRenderer
                     g2d.drawLine(sX + cellSize - 5, sY + 5, sX + 5, sY + cellSize - 5);
                 }
             }
+        }
+
+        for (Iterator<ShipObject> it = perspective.getBoard().getShips(); it.hasNext(); ) {
+            ShipObject obj = it.next();
+            drawShip(obj);
         }
     }
 

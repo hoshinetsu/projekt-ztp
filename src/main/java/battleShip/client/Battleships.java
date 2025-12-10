@@ -29,14 +29,18 @@ public class Battleships extends JFrame {
         game.setBoardGen(new BoardGenerator(rand));
         game.setPlayers(new UserPlayer("Nigger"), CPUPlayer.createAiPlayer());
 
-        SwingRenderer sr = new SwingRenderer(game);
-        game.getPlayer(1).setRenderer(sr);
+        SwingRenderer re1 = new SwingRenderer(game);
+        game.getPlayer(1).setRenderer(re1);
 
-        TextRenderer tr = new TextRenderer(game);
-        game.getPlayer(2).setRenderer(tr);
+        SwingRenderer re2 = new SwingRenderer(game);
+        game.getPlayer(2).setRenderer(re2.setEnemyView());
+        setSize(1000, 500);
+        setLayout(null);
 
-        add(sr);
-        pack();
+        re1.setBounds(0, 0, 500, 500);
+        re2.setBounds(500, 0, 500, 500);
+        add(re1);
+        add(re2);
         setLocationRelativeTo(null);
     }
 

@@ -4,12 +4,13 @@ import battleShip.ui.IBoardRenderer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 public class Battleboard {
     public final int size;
     private int shotsLeft;
-    private List<ShipObject> battleShips;
+    private ArrayList<ShipObject> battleShips;
     private HitboxState[] hitTable;
     private List<IBoardRenderer> renderers;
 
@@ -37,14 +38,6 @@ public class Battleboard {
                 br.updateRenderer();
             }
         }
-    }
-
-    public boolean importShips(List<ShipObject> list) {
-        if (list == null || list.isEmpty()) return false;
-        battleShips.clear();
-        battleShips.addAll(list);
-        updateAllRenderers();
-        return true;
     }
 
     public ShipObject shoot(int x, int y) {
@@ -102,6 +95,10 @@ public class Battleboard {
         return shotsLeft;
     }
 
+    public int allShips(){
+        return battleShips.size();
+    }
+
     public void addRenderer(IBoardRenderer r) {
         renderers.add(r);
         r.updateRenderer();
@@ -109,5 +106,9 @@ public class Battleboard {
 
     public void removeRenderer(IBoardRenderer r) {
         renderers.remove(r);
+    }
+
+    public Iterator<ShipObject> getShips() {
+        return battleShips.iterator();
     }
 }

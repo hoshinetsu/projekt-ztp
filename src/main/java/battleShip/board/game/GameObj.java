@@ -56,5 +56,11 @@ public class GameObj {
         if(currentTurn == 0) currentTurn = 1;
         else currentTurn = 0;
         players[currentTurn].takeTurn();
+        for(Player p : players){
+            if(p.getBoard().allShips() == 0) {
+                System.out.println("Winner: " + p.getEnemy());
+                break;
+            }
+        }
     }
 }

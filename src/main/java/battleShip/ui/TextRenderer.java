@@ -27,7 +27,7 @@ public class TextRenderer
 
     @Override
     public void updateRenderer() {
-        ;
+        render();
     }
 
     @Override
