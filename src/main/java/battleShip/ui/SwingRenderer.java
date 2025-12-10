@@ -2,15 +2,20 @@ package battleShip.ui;
 
 import battleShip.board.Battleboard;
 import battleShip.board.HitboxState;
+import battleShip.board.game.GameObj;
+import battleShip.player.Player;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-public class GameUI extends JPanel implements IBoardRenderer{
+public class SwingRenderer
+        extends JPanel
+        implements IBoardRenderer {
 
-    private final Battleboard bb;
+    private GameObj game;
+    private Player perspective;
     private Graphics2D g2d;
 
     private final int
@@ -20,21 +25,32 @@ public class GameUI extends JPanel implements IBoardRenderer{
             boardOffsetY = 50;
 
 
-    public GameUI(Battleboard bb) {
-        this.bb = bb;
+    public SwingRenderer(GameObj game) {
         this.setPreferredSize(new Dimension(500, 500));
         this.setBackground(Color.DARK_GRAY);
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
+                if (perspective.isAi()) return;
                 int x = (e.getX() - boardOffsetX) / cellSize;
                 int y = (e.getY() - boardOffsetY) / cellSize;
                 if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
-                    bb.shoot(x, y);
+                    perspective.getEnemy().getBoard().shoot(x, y);
+                    game.nextTurn();
                 }
             }
         });
-        bb.addRenderer(this);
+    }
+
+    public IBoardRenderer setPerspective(Player p) {
+        if (perspective != null) {
+            perspective.getBoard().removeRenderer(this);
+        }
+        this.perspective = p;
+        if (perspective != null) {
+            perspective.getBoard().addRenderer(this);
+        }
+        return this;
     }
 
     @Override
@@ -44,11 +60,17 @@ public class GameUI extends JPanel implements IBoardRenderer{
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         render();
         g2d.setColor(Color.WHITE);
-        g2d.drawString("Click the grid to fire!", 50, 30);
+        String str = "Click the grid to fire!";
+        if(perspective != null) {
+            str = "Viewing " + perspective + "'s board:";
+        }
+        g2d.drawString(str, 50, 30);
     }
 
     @Override
     public void render() {
+        if (perspective == null) return;
+        Battleboard bb = perspective.getBoard();
         for (int x = 0; x < gridSize; x++) {
             int sX = boardOffsetX + (x * cellSize);
             for (int y = 0; y < gridSize; y++) {
@@ -68,9 +90,8 @@ public class GameUI extends JPanel implements IBoardRenderer{
                 if (cellState.isMiss()) { // MISS
                     g2d.setColor(Color.WHITE);
                     int size = cellSize / 4;
-                    g2d.fillOval(sX + (cellSize/2) - (size/2), sY + (cellSize/2) - (size/2), size, size);
-                }
-                else if (cellState.isHit()) { // HIT
+                    g2d.fillOval(sX + (cellSize / 2) - (size / 2), sY + (cellSize / 2) - (size / 2), size, size);
+                } else if (cellState.isHit()) { // HIT
                     g2d.setColor(Color.RED);
                     g2d.setStroke(new BasicStroke(3));
                     g2d.drawLine(sX + 5, sY + 5, sX + cellSize - 5, sY + cellSize - 5);
@@ -82,7 +103,7 @@ public class GameUI extends JPanel implements IBoardRenderer{
 
     @Override
     public void updateRenderer() {
-        if(isVisible()) {
+        if (isVisible() && perspective != null) {
             repaint();
         }
     }

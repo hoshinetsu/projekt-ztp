@@ -5,15 +5,15 @@ import battleShip.board.BoardBuilder;
 
 import java.util.Random;
 
-public class BattleshipDeployer implements IBattleshipDeployer {
+public class BoardGenerator implements IBoardGen {
 
     private final Random rand;
 
-    public BattleshipDeployer(long seed) {
+    public BoardGenerator(long seed) {
         this(new Random(seed));
     }
 
-    public BattleshipDeployer(Random rand) {
+    public BoardGenerator(Random rand) {
         this.rand = rand;
     }
 

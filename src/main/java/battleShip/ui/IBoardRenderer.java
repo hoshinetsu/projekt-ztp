@@ -1,6 +1,9 @@
 package battleShip.ui;
 
+import battleShip.player.Player;
+
 public interface IBoardRenderer {
-    public void render();
-    public void updateRenderer();
+    void render();
+    void updateRenderer();
+    IBoardRenderer setPerspective(Player p);
 }
