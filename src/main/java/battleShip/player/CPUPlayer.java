@@ -10,8 +10,8 @@ public class CPUPlayer extends Player {
     private static String lastName;
 
     public final Random rand;
-    private int hitX, hitY, missX, missY;
-    private boolean hitLastTurn;
+    private volatile int hitX, hitY, missX, missY;
+    private volatile boolean hitLastTurn;
 
     /* factory method */
     public static CPUPlayer createAiPlayer() {
@@ -34,7 +34,15 @@ public class CPUPlayer extends Player {
     }
 
     public void doHit(int x, int y) {
+        game.nextTurn();
         hitLastTurn = (enemy.getBoard().shoot(x, y) != null);
+        if(hitLastTurn) {
+            hitX = x;
+            hitY = y;
+        } else {
+            missX = x;
+            missY = y;
+        }
         debug("RESULT", hitLastTurn ? "HIT" : "MISS");
     }
 
@@ -48,51 +56,61 @@ public class CPUPlayer extends Player {
 
     @Override
     public void takeTurn() {
-        debug("AI player", toString(), "taking turn");
         Battleboard board = enemy.getBoard();
         if (board.shotsRemaining() <= 0) return;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                debug(name, "taking turn");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    ;
+                }
 
-        int x = 0, y = 0;
-        // attmept to destroy a found ship
-        if (hitLastTurn) {
-            boolean occupied = true;
+                int x = 0, y = 0;
+                // attmept to destroy a found ship
+                if (hitLastTurn) {
+                    boolean occupied = true;
 
-            // find unhit tiles around last hit spot
-            for (x = clipPos(hitX - 1); x < clipPos(hitX + 1) && occupied; x++) {
-                for (y = clipPos(hitY - 1); y < clipPos(hitY + 1) && occupied; y++) {
-                    if (board.isEmpty(x, y)) {
-                        occupied = false;
+                    // find unhit tiles around last hit spot
+                    for (x = clipPos(hitX - 1); x < clipPos(hitX + 2) && occupied; x++) {
+                        for (y = clipPos(hitY - 1); y < clipPos(hitY + 2) && occupied; y++) {
+                            if (board.isEmpty(x, y)) {
+                                occupied = false;
+                            }
+                        }
+                    }
+
+                    // attempt to randomize the next shot
+                    if (!occupied) {
+                        int tries = 0;
+                        do {
+                            int tx = clipPos(hitX + (rand.nextInt(3) - 1));
+                            int ty = clipPos(hitY + (rand.nextInt(3) - 1));
+                            // check if picked spot is empty
+                            if (board.isEmpty(tx, ty)) {
+                                // it is, we hit it
+                                x = tx;
+                                y = ty;
+                                break;
+                            }
+                        } while (tries++ < 16);
+                        debug("Hit last, attempting", x, y);
+                        doHit(x, y);
+                        return;
                     }
                 }
-            }
 
-            // attempt to randomize the next shot
-            if (!occupied) {
-                int tries = 0;
                 do {
-                    int tx = hitX + (rand.nextInt(3) - 1);
-                    int ty = hitY + (rand.nextInt(3) - 1);
-                    // check if picked spot is empty
-                    if (board.isEmpty(tx, ty)) {
-                        // it is, we hit it
-                        x = tx;
-                        y = ty;
-                        break;
-                    }
-                } while (tries++ < 16);
+                    x = clipPos(rand.nextInt(board.size));
+                    y = clipPos(rand.nextInt(board.size));
+                } while (!board.isEmpty(x, y));
+
+                debug("RANDOM", x, y);
                 doHit(x, y);
-                debug("Hit last, attempting", x, y);
-                return;
             }
-        }
-
-        do {
-            x = clipPos(rand.nextInt(board.size));
-            y = clipPos(rand.nextInt(board.size));
-        } while (!board.isEmpty(x, y));
-
-        doHit(x, y);
-        debug("RANDOM", x, y);
+        }).start();
     }
 
     public int clipPos(int xy) {

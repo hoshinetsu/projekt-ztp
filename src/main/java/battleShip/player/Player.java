@@ -12,6 +12,7 @@ public abstract class Player {
     protected final boolean isAi;
     protected final String name;
     protected int shipsAfloat;
+    protected volatile boolean ownsCurrentTurn;
 
     protected Player(boolean isAi, String name) {
         this.isAi = isAi;
@@ -36,6 +37,14 @@ public abstract class Player {
 
     public final int getShipsAfloat() {
         return shipsAfloat;
+    }
+
+    public boolean ownsCurrentTurn(){
+        return ownsCurrentTurn;
+    }
+
+    public void setOwnsCurrentTurn(boolean turn) {
+        this.ownsCurrentTurn = turn;
     }
 
     public abstract void takeTurn();

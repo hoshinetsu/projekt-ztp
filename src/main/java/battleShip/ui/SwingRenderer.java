@@ -18,35 +18,42 @@ public class SwingRenderer
 
     private GameObj game;
     private Player perspective;
+    private Battleboard board;
     private Graphics2D g2d;
     private boolean enemyView;
+    private final Color bgColor;
 
-    private final int
-            cellSize = 40,
-            gridSize = 10,
-            boardOffsetX = 50,
-            boardOffsetY = 50;
+    public static final int viewportW = 512,
+            viewportH = 768;
+    public static final int boardPixels = 400;
+
+    private int
+            cellSize,
+            boardOffsetX,
+            boardOffsetY;
 
 
     public SwingRenderer(GameObj game) {
-        this.setPreferredSize(new Dimension(500, 500));
-        this.setBackground(Color.DARK_GRAY);
+        this.setPreferredSize(new Dimension(viewportW, viewportH));
+        this.setBackground(bgColor = Color.DARK_GRAY);
         enemyView = false;
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (!enemyView) return;
+                if (!enemyView || perspective.ownsCurrentTurn()) return;
+                Battleboard board = perspective.getBoard();
                 int x = (e.getX() - boardOffsetX) / cellSize;
                 int y = (e.getY() - boardOffsetY) / cellSize;
-                if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
-                    perspective.getBoard().shoot(x, y);
+                if (x >= 0 && x < board.size && y >= 0 && y < board.size) {
+                    if (!board.isEmpty(x, y)) return;
                     game.nextTurn();
+                    board.shoot(x, y);
                 }
             }
         });
     }
 
-    public SwingRenderer setEnemyView(){
+    public SwingRenderer setEnemyView() {
         enemyView = true;
         return this;
     }
@@ -58,7 +65,11 @@ public class SwingRenderer
         this.perspective = p;
         if (perspective != null) {
             enemyView = perspective.isAi();
-            perspective.getBoard().addRenderer(this);
+            board = perspective.getBoard();
+            board.addRenderer(this);
+            cellSize = boardPixels / board.size;
+            boardOffsetX = (viewportW - boardPixels) / 2;
+            boardOffsetY = (viewportH - boardPixels) / 2;
         }
         return this;
     }
@@ -67,14 +78,12 @@ public class SwingRenderer
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         g2d = (Graphics2D) g;
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setBackground(bgColor);
+        g2d.clearRect(0, 0, viewportW, viewportH);
         render();
         g2d.setColor(Color.WHITE);
-        String str = "unknown player's board";
-        if(perspective != null) {
-            str = "Viewing " + perspective + "'s board:";
-        }
-        g2d.drawString(str, 50, 30);
+        String str = perspective + "'s Fleet:";
+        g2d.drawString(str, boardOffsetX, boardOffsetY - 10);
     }
 
     private void drawShip(ShipObject obj) {
@@ -100,9 +109,9 @@ public class SwingRenderer
     public void render() {
         if (perspective == null) return;
         Battleboard bb = perspective.getBoard();
-        for (int x = 0; x < gridSize; x++) {
+        for (int x = 0; x < bb.size; x++) {
             int sX = boardOffsetX + (x * cellSize);
-            for (int y = 0; y < gridSize; y++) {
+            for (int y = 0; y < bb.size; y++) {
                 int sY = boardOffsetY + (y * cellSize);
                 HitboxState cellState = bb.getHitState(x, y);
                 if (cellState.isHit()) {
@@ -128,7 +137,7 @@ public class SwingRenderer
                 }
             }
         }
-
+        if (enemyView) return;
         for (Iterator<ShipObject> it = perspective.getBoard().getShips(); it.hasNext(); ) {
             ShipObject obj = it.next();
             drawShip(obj);

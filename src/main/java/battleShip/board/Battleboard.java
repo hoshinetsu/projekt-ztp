@@ -1,5 +1,6 @@
 package battleShip.board;
 
+import battleShip.board.game.GameObj;
 import battleShip.ui.IBoardRenderer;
 
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.List;
 
 public class Battleboard {
     public final int size;
+    private GameObj game;
     private int shotsLeft;
     private ArrayList<ShipObject> battleShips;
     private HitboxState[] hitTable;
@@ -21,6 +23,11 @@ public class Battleboard {
         Arrays.fill(hitTable, HitboxState.EMPTY);
         battleShips = new ArrayList<ShipObject>();
         renderers = new ArrayList<IBoardRenderer>();
+    }
+
+    public Battleboard setGame(GameObj game) {
+        this.game = game;
+        return this;
     }
 
     public boolean placeShip(ShipObject so) {
@@ -41,6 +48,7 @@ public class Battleboard {
     }
 
     public ShipObject shoot(int x, int y) {
+        if(game.isOver()) return null;
         ShipObject ret = null;
         HitboxState state = hitTable[x + y * size];
 

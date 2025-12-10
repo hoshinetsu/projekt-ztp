@@ -8,6 +8,8 @@ public class UserPlayer extends Player {
 
     @Override
     public void takeTurn() {
-        ;
+        System.out.print("Waiting for ");
+        System.out.print(name);
+        System.out.println("'s move..");
     }
 }

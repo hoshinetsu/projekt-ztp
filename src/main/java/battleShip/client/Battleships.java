@@ -22,25 +22,26 @@ public class Battleships extends JFrame {
         instance = this;
         setTitle("Battleships");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+        setSize(1024, 768);
+        setLayout(null);
+        // INIT GAME
         Random rand = new Random();
-
         GameObj game = new GameObj(GameMode.PvC, rand, 10);
         game.setBoardGen(new BoardGenerator(rand));
         game.setPlayers(new UserPlayer("Nigger"), CPUPlayer.createAiPlayer());
-
+        // START GAME
+        game.startGame();
+        // INIT RENDERERS
         SwingRenderer re1 = new SwingRenderer(game);
         game.getPlayer(1).setRenderer(re1);
-
         SwingRenderer re2 = new SwingRenderer(game);
         game.getPlayer(2).setRenderer(re2.setEnemyView());
-        setSize(1000, 500);
-        setLayout(null);
-
-        re1.setBounds(0, 0, 500, 500);
-        re2.setBounds(500, 0, 500, 500);
+        // ADD RENDERERS TO VIEWPORT
+        re1.setBounds(0, 0, SwingRenderer.viewportW, SwingRenderer.viewportH);
+        re2.setBounds(SwingRenderer.viewportW, 0, SwingRenderer.viewportW, SwingRenderer.viewportH);
         add(re1);
         add(re2);
+        // ADD TURN LABEL
         setLocationRelativeTo(null);
     }
 

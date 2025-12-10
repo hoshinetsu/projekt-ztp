@@ -1,8 +1,8 @@
 package battleShip.board.game;
 
+import battleShip.board.Battleboard;
 import battleShip.board.gen.IBoardGen;
 import battleShip.player.Player;
-import battleShip.ui.SwingRenderer;
 
 import java.util.Random;
 
@@ -10,10 +10,13 @@ public class GameObj {
     public final GameMode mode;
     public final Random rand;
     public final int boardSize;
-
-    private int currentTurn;
+    private volatile int currentTurn;
+    private int turnCount;
+    private Player winner;
     private IBoardGen boardGen;
     private final Player[] players;
+    private long duration;
+
     // TODO: registrationservice, matchhistoryservice
 
     public GameObj(GameMode mode, Random rand, int boardSize) {
@@ -21,16 +24,12 @@ public class GameObj {
         this.rand = rand;
         this.boardSize = boardSize;
         players = new Player[2];
-        currentTurn = 0;
+        turnCount = 0;
+        currentTurn = rand.nextInt(2);
     }
 
     public void setBoardGen(IBoardGen gen){
         this.boardGen = gen;
-    }
-
-    public boolean playerExists(int ptr) {
-        if (ptr < 0 || ptr >= players.length) return false;
-        return players[ptr] != null;
     }
 
     public Player getPlayer(int ptr) {
@@ -47,20 +46,51 @@ public class GameObj {
         players[1] = two;
 
         for(int i = 0; i < 2; i++){
+            Battleboard bb = boardGen.deployBoard(boardSize);
+            bb.setGame(this);
             players[i].setGame(this);
-            players[i].setBoard(boardGen.deployBoard(boardSize));
+            players[i].setBoard(bb);
         }
     }
 
+    public void startGame(){
+        if(isOver()) throw new IllegalStateException("Reuse of game objects not permitted");
+        duration = System.currentTimeMillis();
+        nextTurn();
+    }
+
+    private void endGame(){
+        duration = System.currentTimeMillis() - duration;
+        System.out.println("Winner: " + winner);
+    }
+
+    public long getGameTime(){
+        if(!isOver()) throw new IllegalStateException("Game is in progress!");
+        return duration;
+    }
+
     public void nextTurn() {
+        if(isOver()) return;
+        System.out.printf("== Turn %d\n", ++turnCount);
+
+        players[currentTurn].setOwnsCurrentTurn(false);
+
         if(currentTurn == 0) currentTurn = 1;
         else currentTurn = 0;
+
+        players[currentTurn].setOwnsCurrentTurn(true);
         players[currentTurn].takeTurn();
+
         for(Player p : players){
             if(p.getBoard().allShips() == 0) {
-                System.out.println("Winner: " + p.getEnemy());
+                winner = p.getEnemy();
+                endGame();
                 break;
             }
         }
+    }
+
+    public boolean isOver() {
+        return winner != null;
     }
 }
